@@ -1,6 +1,8 @@
 (ns clj-scraper.core
-  (:require [net.cgrand.enlive-html :as html]
-            [clj-xpath.core :as xp])
+  (:require [net.cgrand.enlive-html :as e]
+            [clj-xpath.core :as xp]
+            [hiccup.util :as hutil]
+            [clojure.xml :as xml])
   (:use clojure.tools.trace)
   (:gen-class))
 
@@ -34,24 +36,45 @@ structure is a vector of attributes"
          (reduce merge {}))
     html))
 
+
 ;; Some helpers that should be moved to a different ns
 (defn enlive-selector [selector]
   (fn [html-str]
     (apply str(-> html-str
-                   (html/html-snippet)
-                   (html/select selector)
-                   (html/emit*)))))
+                   (e/html-snippet)
+                   (e/select selector)
+                   (e/emit*)))))
 
 (defn enlive-splitter [selector]
   (fn [html-str]
     (->>
      (-> html-str
-         (html/html-snippet)
-         (html/select selector))
-     (map #(apply str (html/emit* %))))))
+         (e/html-snippet)
+         (e/select selector))
+     (map #(apply str (e/emit* %))))))
 
 (defn remove-xml-header [xml]
   (clojure.string/replace xml #"<\?xml.*\?>" ""))
+
+(defn html-entity? [str]
+  (contains? #{"&amp;"
+               "&lt;"
+               "&gt;"} str))
+
+(defn entity-str [str]
+  (let [sc-pos (.indexOf str ";")]
+    (if (not (= sc-pos -1))
+      (subs str 0 (inc sc-pos))
+      "&")))
+
+(defn sanitize-&-html-text [html-str]
+  (loop [s html-str
+         result ""]
+    (if (not (empty? s))
+      (if (and (= (str (first s )) "&") (not (html-entity? (entity-str s))))
+        (recur (subs s 1) (str result "&amp;"))
+        (recur (subs s 1) (str result (first s))))
+      result)))
 
 (defn xpath-splitter [selector]
   (fn [html-str]
@@ -81,4 +104,5 @@ structure is a vector of attributes"
                :limit 10
                :splitter (xpath-splitter "//*[@id=\"therest\"]/table/tbody/tr[position()>1]")}])
 
+(def testp (fetch-url "http://twitaholic.com/"))
 ;;(extract twa-page (fetch-url "http://twitaholic.com/"))

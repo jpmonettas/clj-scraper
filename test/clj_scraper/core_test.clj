@@ -5,6 +5,40 @@
             [clj-scraper.core :refer :all]
             [net.cgrand.enlive-html :as e]))
 
+(facts "about entity-str"
+       (fact
+        (entity-str "&") => "&")
+       (fact
+        (entity-str "&amp;") => "&amp;")
+       (fact
+        (entity-str "&lt;") => "&lt;")
+       (fact
+        (entity-str "&amp;text") => "&amp;"))
+
+(facts "about html-entity?"
+       (fact
+        (html-entity? "&") => false)
+       (fact
+        (html-entity? "&amp;") => true)
+       (fact
+        (html-entity? "&lt;") => true))
+
+(facts "about sanitize-&-html-text"
+       (fact "only &"
+        (sanitize-&-html-text "&") => "&amp;")
+       (fact "only &amp;"
+        (sanitize-&-html-text "&amp;") => "&amp;")
+       (fact "almost entity"
+        (sanitize-&-html-text "&lt") => "&amp;lt")
+       (fact "only &lt;"
+        (sanitize-&-html-text "&lt;") => "&lt;")
+       (fact "text with &"
+        (sanitize-&-html-text "example & other") => "example &amp; other")
+       (fact "text with &amp;"
+        (sanitize-&-html-text "example &amp; other") => "example &amp; other")
+       (fact "&&amp;"
+        (sanitize-&-html-text "example &&amp; other") => "example &amp;&amp; other"))
+
 (facts "about xpath-splitter"
        (let [example (h/html [:table
                               [:tr [:td 1]]
@@ -16,7 +50,9 @@
                                                                (h/html [:tr [:td 3]])))
          (fact "with table->tr[position()>1]"
                ((xpath-splitter "/table/tr[position()>1]") example) => (list (h/html [:tr [:td 2]])
-                                                                             (h/html [:tr [:td 3]])))))
+                                                                             (h/html [:tr [:td 3]])))
+         #_(fact "with &"
+               ((xpath-splitter "/table/tr") "<table><tr>&</tr>"))))
 
 (facts "about xpath-selector"
        (let [example (h/html [:table
