@@ -36,3 +36,12 @@ structure is a vector of attributes"
          (map #(extract-attr % html))
          (reduce merge {}))
     (u/html-sampler html)))
+
+(defn entity-attribute [attributes]
+  (into ()
+        (for [attribute attributes]
+          (into {:name (first attribute)} (apply hash-map (rest attribute))))))
+
+(defmacro defentity [name & attributes]
+  `(def ~name [~@(entity-attribute attributes)]))
+qqqq
