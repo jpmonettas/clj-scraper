@@ -42,6 +42,7 @@ structure is a vector of attributes"
          (reduce merge {}))
     (u/html-sampler html)))
 
+
 (defn get-attr-type [attr]
   (if (:splitter attr)
     :collection
@@ -55,3 +56,6 @@ structure is a vector of attributes"
 (defn entity-attribute [attributes]
   (->> attributes
       (map process-attribute)))
+
+(defmacro defentity [name & attributes]
+  `(def ~name [~@(entity-attribute attributes)]))
