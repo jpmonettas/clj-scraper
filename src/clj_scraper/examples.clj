@@ -34,5 +34,6 @@
                 :splitter (xpath-splitter "//*[@id=\"therest\"]/table/tbody/tr[position()>1]")
                 :next-page nil}])
 
+
 ;;(def testp (fetch-url "http://twitaholic.com/"))
-;;(extract twa-page (fetch-url "http://twitaholic.com/"))
+;;(extract twa-page testp)

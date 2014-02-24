@@ -7,7 +7,12 @@
   (:use clojure.tools.trace)
   (:gen-class))
 
-
+(defmacro time-track
+  [label expr]
+  `(let [start# (. System (nanoTime))
+         ret# ~expr]
+     (prn (str "Elapsed time for " ~label ": "(/ (double (- (. System (nanoTime)) start#)) 1000000.0) " msecs"))
+     ret#))
 
 (declare extract)
 
@@ -36,3 +41,17 @@ structure is a vector of attributes"
          (map #(extract-attr % html))
          (reduce merge {}))
     (u/html-sampler html)))
+
+(defn get-attr-type [attr]
+  (if (:splitter attr)
+    :collection
+    :simple))
+
+(defn process-attribute [attr]
+  (let [[attr-name & attr-rest] attr]
+    (merge {:name (keyword attr-name) :type (get-attr-type attr-rest)}
+           (apply hash-map attr-rest))))
+
+(defn entity-attribute [attributes]
+  (->> attributes
+      (map process-attribute)))

@@ -16,7 +16,7 @@
                           :finder (enlive-selector [:tr :td.first :> e/text-node])}]
          (fact "with an item structure for col-type returns structured items"
                (extract-attr item-struct example) => {:f "1-1"})
-         (fact "with nil finder returns identity"
+         (fact "with nil finder returns sampled identity"
                (extract-attr (assoc item-struct :finder nil) example) => {:f (h/html [:tr
                                                                                       [:td.first "1-1"]
                                                                                       [:td.second "1-2"]])})))
