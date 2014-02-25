@@ -11,21 +11,30 @@
 
 ;; (defentity edad
 ;;   [])
+
 ;; (defentity twa-person
 ;;   [nombre :finder "/tr/td[4]/text()"]
-;;   [otra :follow edad :follow-finder fn]
+;;   [otra :follow fn-rest-link :finder fn]
 ;;   [otroo :finder (xpath-selector "/tr/td[@class=\"statcol_num\"]/text()")])
 
 ;; (defentity twa-page
 ;;   [persons :splitter twa-person])
 
 
+(def age [{:name :age-in-number
+           :type :simple
+           :finder ""}])
+
 (def twa-person [{:name :position
               :type :simple
               :finder (xpath-selector "/tr/td[@class=\"statcol_num\"]/text()")}
              {:name :name
               :type :simple
-              :finder (xpath-selector "/tr/td[@class=\"statcol_name\"]/text()")}])
+              :finder (xpath-selector "/tr/td[@class=\"statcol_name\"]/text()")}
+             {:name :age
+              :type :simple
+              :finder ""
+              :follow  ""}])
 
 (def twa-page [{:name :all
                 :type :collection
