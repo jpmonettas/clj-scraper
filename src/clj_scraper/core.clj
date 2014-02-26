@@ -7,12 +7,6 @@
   (:use clojure.tools.trace)
   (:gen-class))
 
-(defmacro time-track
-  [label expr]
-  `(let [start# (. System (nanoTime))
-         ret# ~expr]
-     (prn (str "Elapsed time for " ~label ": "(/ (double (- (. System (nanoTime)) start#)) 1000000.0) " msecs"))
-     ret#))
 
 (declare extract)
 
@@ -24,11 +18,26 @@
                              #(u/html-sampler %))]
     {name (effective-finder html)}))
 
+(defn fetch-col-items [splitter limit next-page html]
+  ((if limit (partial take limit) identity)
+        (loop [res (splitter html)
+               h html]
+          (if (or (empty? res)
+                  (nil? next-page)
+                  (and limit (> (count res) limit)))
+            res
+            (let [next-page-url (next-page "" h)
+                  next-page-content (u/fetch-url next-page-url)
+                  next-page-items (splitter next-page-content)]
+              (if (or (empty? next-page-url)
+                      (empty? next-page-items))
+                res
+                (recur (concat res next-page-items) next-page-content)))))))
 
 (defmethod extract-attr :collection
-  [{name :name item-structure :col-type limit :limit splitter :splitter} html]
+  [{name :name item-structure :col-type limit :limit splitter :splitter next-page :next-page} html]
   (let [splitted-col (->>
-                      (splitter html)
+                      (fetch-col-items splitter limit next-page html)
                       (map #(extract item-structure %)))]
     {name splitted-col}))
 

@@ -40,7 +40,7 @@
                              :col-type paged-col-item
                              :splitter (xpath-splitter "/div/table/tr")
                              :next-page (fn [url html]
-                                          ((xpath-selector "/div/a@href") html))}
+                                          ((xpath-selector "/div/a/@href") html))}
              fetch-url-mock (fn [_] page2)
              col-struct {:name :all
                          :type :collection
