@@ -10,17 +10,32 @@
 (facts "about extract-attr simple"
        (let [example (h/html [:tr
                                [:td.first "1-1"]
-                               [:td.second "1-2"]])
+                              [:td.second "1-2"]])
+             page1 (h/html [:tr
+                            [:td.nombre "Boby"]
+                            [:td.ape "Tables"]
+                            [:td [:a {:href "http://2"}]]])
+             page2 (h/html [:tr [:td.first "Other Content"]])
+             fetch-url-mock (fn [_] page2)
              item-struct {:name :f
                           :type :simple
                           :finder (enlive-selector [:tr :td.first :> e/text-node])}]
          (fact "with an item structure for col-type returns structured items"
-               (extract-attr item-struct example) => {:f "1-1"})
+               (extract-attr item-struct example "") => {:f "1-1"})
          (fact "with nil finder returns sampled identity"
-               (extract-attr (assoc item-struct :finder nil) example) => {:f (html-sampler
+               (extract-attr (assoc item-struct :finder nil) example "") => {:f (html-sampler
                                                                               (h/html [:tr
                                                                                        [:td.first "1-1"]
-                                                                                       [:td.second "1-2"]]))})))
+                                                                                       [:td.second "1-2"]]))})
+         (fact "with follow"
+               (with-redefs [fetch-url fetch-url-mock]
+                 (extract-attr (assoc item-struct :follow (fn [u,h]
+                                                            (xpath-selector "/tr/td/a/@href") h))
+                               page1 ""))
+
+               =>
+
+               {:f "Other Content"})))
 
 (facts "about `extract-attr` collection"
        (let [page1 (h/html [:div [:table
@@ -48,7 +63,7 @@
                          :limit 10
                          :splitter (enlive-splitter [:div :table :tr])}]
          (fact "with nil col-type returns colection with unstructured items"
-               (extract-attr col-struct page1) => {:all (list
+               (extract-attr col-struct page1 "") => {:all (list
                                                            (html-sampler (h/html [:tr [:td "row1"]]))
                                                            (html-sampler (h/html [:tr [:td "row2"]]))
                                                            (html-sampler (h/html [:tr [:td "row3"]])))})
@@ -56,7 +71,7 @@
 
          (fact "with paged collection"
                (with-redefs [fetch-url fetch-url-mock]
-                 (extract-attr paged-col-attr page1) => {:rows '({:i "row1"}
+                 (extract-attr paged-col-attr page1 "") => {:rows '({:i "row1"}
                                                                  {:i "row2"}
                                                                  {:i "row3"}
                                                                  {:i "row2-1"}
@@ -64,11 +79,23 @@
                                                                  {:i "row2-3"})}))
          (fact "with limited collection"
                (with-redefs [fetch-url fetch-url-mock]
-                 (extract-attr (assoc paged-col-attr :limit 4) page1) => {:rows
+                 (extract-attr (assoc paged-col-attr :limit 4) page1 "") => {:rows
                                                                           '({:i "row1"}
                                                                             {:i "row2"}
                                                                             {:i "row3"}
-                                                                            {:i "row2-1"})}))))
+                                                                            {:i "row2-1"})}))
+         (fact "with next button not found"
+               (with-redefs [fetch-url fetch-url-mock]
+                 (extract-attr (assoc paged-col-attr :next-page (fn [url html]
+                                                                  ((xpath-selector "/wrong/a/@href") html)))
+                               page1 "")
+
+                 =>
+
+                 {:rows
+                  '({:i "row1"}
+                    {:i "row2"}
+                    {:i "row3"})}))))
 
 (facts "about `extract`"
        (let [example (h/html [:table
@@ -93,7 +120,7 @@
                           :limit 10
                           :splitter (enlive-splitter [:table :tr])}]]
          (fact "with composed structure"
-               (extract col-struct example) => {:all (list {:f "1-1"
+               (extract col-struct example "") => {:all (list {:f "1-1"
                                                             :s "1-2"}
                                                            {:f "2-1"
                                                             :s "2-2"}
@@ -102,11 +129,14 @@
 
 (facts "about defentity"
        (fact
+
         (defentity person
           [name :prop1 val1 :prop2 val2]
-          [age :prop1 val1 :prop2 val2])
+          [age :prop1 val1 :prop2 val2]
+          [friends :splitter spl-func :limit 5])
 
         =expands-to=>
 
         (def person [{:name :name, :prop1 val1, :prop2 val2, :type :simple}
-                     {:name :age, :prop1 val1, :prop2 val2, :type :simple}])))
+                     {:name :age, :prop1 val1, :prop2 val2, :type :simple}
+                     {:name :friends :type :collection :limit 5 :splitter spl-func}])))
