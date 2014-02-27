@@ -1,0 +1,8 @@
+* TODO DSL improvements
+* TODO Refactor fetch-col-items
+* TODO Strings as xpath selectors
+* TODO Eval other xpath libs
+* TODO Add CSS selectors libs
+* TODO Output formatting
+* TODO Error Handling
+* TODO Documentation
