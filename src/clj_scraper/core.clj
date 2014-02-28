@@ -59,6 +59,7 @@ structure is a vector of attributes"
 (defn extract-url [structure url]
   (extract structure (u/fetch-url url) url))
 
+;; DSL implementation
 
 (defn get-attr-type [attr]
   (if (:splitter attr)

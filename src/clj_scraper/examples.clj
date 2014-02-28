@@ -18,4 +18,10 @@
    :limit 2
    :col-type person])
 
-;; (clojure.pprint/pprint (extract-url people "http://twitaholic.com/"))
+(comment
+
+
+  (clojure.pprint/pprint (extract-url people "http://twitaholic.com/"))
+
+
+ )

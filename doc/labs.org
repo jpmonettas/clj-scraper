@@ -1,0 +1,38 @@
+* What's clj-scraper
+** target users: non-programmers and "power users"
+** Why another scraper? use of DSL to enable users. provide abstraction of the scrapping mechanisms
+** It is not about downloading the whole content of a site, but of extracting the relevant information and relate different sources of information.
+
+* Snapshot of product
+** Example of content to scrap (at least two sites)
+** Example of output (json)
+** Example of how to express it
+
+* Goals of this project
+** Implement a scraper with a DSL
+** Try out a simple clojure project and assess strengths and weaknesses
+
+* Design
+** DSL is converted to intermediate representation
+** Intermediate representation using clojure native collections
+** Using intermediate representation, we scrap the content
+** DSL allows the user to construct the entities incrementally. User may write a minimal spec, test the results and then be more specific. (use some kind of screeencast for this?)
+
+* Implementation using clojure
+** Development cycle: immediate feedback to the developer. Speed of development (how do we express this?)
+** Expresiveness
+** Testing (functional)
+**** Unit testing facilitated by absence of side effects and the ability of easily mocking
+** High order functions for selectors, splitters (functional)
+**** Easy to add new custom selectors
+
+** Use of macros for defining DSL
+*** LISP is a natural choice for implementing DSLs
+
+** Use of multimethods to implement generalization of entity extraction (an alternative to class hierarchies).
+
+* Evaluation of development experience
+** Concise code
+** TDD
+** Value of unit testing
+** Error handling? Is it difficult to locate the source of errors?
