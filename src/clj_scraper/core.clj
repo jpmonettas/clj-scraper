@@ -21,21 +21,21 @@
                              #(u/html-sampler %))]
     {name (effective-finder h)}))
 
+
+(defn create-page-stream [url html next-page]
+  (cons html (let [next-page-url (when next-page (next-page url html))
+                   next-page-html (when (not (empty? next-page-url))
+                                    (u/fetch-url next-page-url))]
+               (when next-page-html
+                 (lazy-seq (create-page-stream next-page-url next-page-html next-page))))))
+
+
 (defn fetch-col-items [splitter limit next-page html url]
-  ((if limit (partial take limit) identity)
-        (loop [res (splitter html)
-               h html]
-          (if (or (empty? res)
-                  (nil? next-page)
-                  (and limit (> (count res) limit)))
-            res
-            (let [next-page-url (next-page url h)
-                  next-page-content (u/fetch-url next-page-url)
-                  next-page-items (splitter next-page-content)]
-              (if (or (empty? next-page-url)
-                      (empty? next-page-items))
-                res
-                (recur (concat res next-page-items) next-page-content)))))))
+  (let [safe-take (if limit (partial take limit) identity)]
+    (->> (create-page-stream url html next-page)
+         (map splitter)
+         (reduce concat)
+         (safe-take))))
 
 
 

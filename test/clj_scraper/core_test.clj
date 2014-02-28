@@ -131,12 +131,18 @@
        (fact
 
         (defentity person
-          [name :prop1 val1 :prop2 val2]
-          [age :prop1 val1 :prop2 val2]
+          [first-name :finder "/div[@class='name']/text()"]
+          [age :finder "/div[@class='age']/text()"]
           [friends :splitter spl-func :limit 5])
 
         =expands-to=>
 
-        (def person [{:name :name, :prop1 val1, :prop2 val2, :type :simple}
-                     {:name :age, :prop1 val1, :prop2 val2, :type :simple}
-                     {:name :friends :type :collection :limit 5 :splitter spl-func}])))
+        (def person [{:name :first-name
+                      :finder "/div[@class='name']/text()"
+                      :type :simple}
+                     {:name :age
+                      :finder "/div[@class='age']/text()"
+                      :type :simple}
+                     {:name :friends
+                      :type :collection
+                      :limit 5 :splitter spl-func}])))
