@@ -31,11 +31,11 @@
 
 
 (defn fetch-col-items [splitter limit next-page html url]
-  (let [safe-take (if limit (partial take limit) identity)]
+  (let [safe-take (fn [n col] (if n (take n col) col))]
     (->> (create-page-stream url html next-page)
          (map splitter)
          (reduce concat)
-         (safe-take))))
+         (safe-take limit))))
 
 
 
