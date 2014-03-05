@@ -1,0 +1,107 @@
+* DSL
+
+* Intermediate representation
+** Structure
+
+   A structure is simply a vector of attributes.
+   It's used to represent entities at the intermediate representation.
+
+   [attribute1 attribute2 ... attributeN]
+
+** Attributes (:simple | :collection | :record)
+*** :simple
+
+    The simple attribute MUST contain :
+
+    {:name :attr-name
+     :type :simple}
+
+    The simple attribute CAN contain :
+
+    {:name :attr-name
+     :type :simple
+     :finder a-finder-func
+     :follow a-link-finder-func}
+
+    If a simple attribute doesn't contains a finder we are using a sample of the entire context.
+
+*** :collection
+
+    The collection attribute MUST contain :
+
+    {:name :attr-name
+     :type :collection
+     :splitter a-splitter-func}
+
+    The collection attribute CAN contain :
+
+    {:name :attr-name
+     :type :collection
+     :splitter a-splitter-func
+     :entity a-structure
+     :limit a-number
+     :next-page a-next-page-url-gen-func}
+
+    If a collection type doesn't contains an :entity the entire splitted html will be returned
+
+*** :record
+
+    TBD
+
+
+* Returns (output)
+
+  A structure is extracted as a map with one key for each attribute name, mapped to the attribute
+  extracted value.
+  Collection attributes returns a sequence
+
+
+* Examples
+
+** Basic 1
+
+[{:name :first-name
+  :type :simple}
+ {:name :last-name
+  :type :simple}]
+
+extacts =>
+
+{:first-name "John"
+ :last-name "Travolta"}
+
+** Basic 2 (with collection)
+
+[{:name :first-name
+  :type :simple}
+ {:name :friends-names
+  :type :collection
+  :splitter a-splitter-func}]
+
+extracts =>
+
+{:first-name "John"
+ :friends ("Friend1" "Friend 2" "Friend 3")}
+
+** Composed 1 (with collection)
+
+[{:name :first-name
+  :type :simple}
+ {:name :friends-names
+  :type :collection
+  :splitter a-splitter-func
+  :entity [{:name :age
+            :type :simple}
+           {:name :phone
+            :type :simple}]}]
+
+extracts =>
+
+{:first-name "John"
+ :friends ({:age 30 :phone "111-23456432"}
+           {:age 32 :phone "232-23456432"}
+           {:age 28 :phone "245-23456432"})}
+
+** Composed 2 (with follow)
+
+TBD
