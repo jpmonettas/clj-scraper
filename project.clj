@@ -11,6 +11,9 @@
                  ;; HTML parsing
                  [enlive "1.1.5"]
 
+                 ;; Examples
+                 [org.marianoguerra/clj-rhino "0.2.1"]
+
                  ;; XPath
                  [com.github.kyleburton/clj-xpath "1.4.3"]]
   :profiles {:dev {:dependencies

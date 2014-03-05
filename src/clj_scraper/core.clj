@@ -40,7 +40,7 @@
 
 
 (defmethod extract-attr :collection
-  [{name :name item-structure :col-type limit :limit splitter :splitter next-page :next-page} html url]
+  [{name :name item-structure :entity limit :limit splitter :splitter next-page :next-page} html url]
   (let [splitted-col (->>
                       (fetch-col-items splitter limit next-page html url)
                       (map #(extract item-structure % url)))]
@@ -59,7 +59,9 @@ structure is a vector of attributes"
 (defn extract-url [structure url]
   (extract structure (u/fetch-url url) url))
 
-;; DSL implementation
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; DSL implementation                                            ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn get-attr-type [attr]
   (if (:splitter attr)

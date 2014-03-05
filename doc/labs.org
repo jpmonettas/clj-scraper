@@ -36,3 +36,5 @@
 ** TDD
 ** Value of unit testing
 ** Error handling? Is it difficult to locate the source of errors?
+
+Use follow-ent for recusive(cascade) scrapping

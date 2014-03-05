@@ -17,25 +17,43 @@
                             [:td [:a {:href "http://2"}]]])
              page2 (h/html [:tr [:td.first "Other Content"]])
              fetch-url-mock (fn [_] page2)
-             item-struct {:name :f
-                          :type :simple
-                          :finder (enlive-selector [:tr :td.first :> e/text-node])}]
-         (fact "with an item structure for col-type returns structured items"
-               (extract-attr item-struct example "") => {:f "1-1"})
+             item-attr {:name :f
+                        :type :simple
+                        :finder (enlive-selector [:tr :td.first :> e/text-node])}]
+         (fact "with an item structure for entity returns structured items"
+               (extract-attr item-attr example "") => {:f "1-1"})
          (fact "with nil finder returns sampled identity"
-               (extract-attr (assoc item-struct :finder nil) example "") => {:f (html-sampler
+               (extract-attr (assoc item-attr :finder nil) example "") => {:f (html-sampler
                                                                               (h/html [:tr
                                                                                        [:td.first "1-1"]
                                                                                        [:td.second "1-2"]]))})
          (fact "with follow"
                (with-redefs [fetch-url fetch-url-mock]
-                 (extract-attr (assoc item-struct :follow (fn [u,h]
+                 (extract-attr (assoc item-attr :follow (fn [u,h]
                                                             (xpath-selector "/tr/td/a/@href") h))
                                page1 ""))
 
                =>
 
                {:f "Other Content"})))
+
+(facts "about extract-attr record"
+       (let [page1 (h/html [:tr
+                            [:td.nombre "Boby"]
+                            [:td.ape "Tables"]
+                            [:td [:a {:href "http://2"}]]])
+             page2 (h/html [:tr
+                            [:td.first "Other Content"]])
+             item-det-struct [{:name :t
+                               :type :simple
+                               :finder (enlive-selector [:tr :td.first :> e/text-node])}]
+             item-attr {:name :f
+                        :type :record
+                        :entity item-det-struct
+                        :follow (fn [u,h]
+                                  (xpath-selector "/tr/td/a/@href") h)}]
+         (fact "simple case"
+              (extract-attr item-attr page1 "") => {:f {:t "Other Content"}})))
 
 (facts "about `extract-attr` collection"
        (let [page1 (h/html [:div [:table
@@ -52,18 +70,18 @@
                               :finder (xpath-selector "/tr/td/text()")}]
              paged-col-attr {:name :rows
                              :type :collection
-                             :col-type paged-col-item
+                             :entity paged-col-item
                              :splitter (xpath-splitter "/div/table/tr")
                              :next-page (fn [url html]
                                           ((xpath-selector "/div/a/@href") html))}
              fetch-url-mock (fn [_] page2)
-             col-struct {:name :all
+             col-attr {:name :all
                          :type :collection
-                         :col-type nil
+                         :entity nil
                          :limit 10
                          :splitter (enlive-splitter [:div :table :tr])}]
-         (fact "with nil col-type returns colection with unstructured items"
-               (extract-attr col-struct page1 "") => {:all (list
+         (fact "with nil entity returns colection with unstructured items"
+               (extract-attr col-attr page1 "") => {:all (list
                                                            (html-sampler (h/html [:tr [:td "row1"]]))
                                                            (html-sampler (h/html [:tr [:td "row2"]]))
                                                            (html-sampler (h/html [:tr [:td "row3"]])))})
@@ -116,7 +134,7 @@
                            :finder (enlive-selector [:tr :td.second  :> e/text-node])}]
              col-struct [{:name :all
                           :type :collection
-                          :col-type item-struct
+                          :entity item-struct
                           :limit 10
                           :splitter (enlive-splitter [:table :tr])}]]
          (fact "with composed structure"

@@ -8,6 +8,17 @@
 
 (def fetch-url (memoize slurp))
 
+(defn cleaner [& chars]
+  (fn [html-str]
+    (apply str (remove (into #{} chars) html-str))))
+
+(defn regexp-selector [regexp n]
+  (fn [html-str]
+    (try
+      (when html-str
+        (nth (re-matches regexp html-str) n))
+      (catch Exception e (.printStackTrace e)))))
+
 (defn enlive-selector [selector]
   (fn [html-str]
     (apply str(-> html-str

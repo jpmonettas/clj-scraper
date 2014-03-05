@@ -5,6 +5,14 @@
             [clj-scraper.utils :refer :all]
             [net.cgrand.enlive-html :as e]))
 
+(facts "about regexp-selector"
+       (let [example (h/html [:div [:a.myanchor "text"]])]
+         (fact "basic example"
+               ((regexp-selector #".*<a.*>(.+)</a>.*" 1) example) => "text")))
+
+(facts "about cleaner"
+       (fact "basic example"
+             ((cleaner \tab \o) "hello\t") => "hell"))
 
 (facts "about xpath-splitter"
        (let [example (h/html [:table
