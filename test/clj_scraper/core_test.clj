@@ -7,10 +7,18 @@
             [net.cgrand.enlive-html :as e]))
 
 
+(facts "about get-attr-type"
+       (fact "collection"
+             (get-attr-type {:name :test :splitter :spl}) => :collection)
+       (fact "simple"
+             (get-attr-type {:name :test}) => :simple)
+       (fact "record"
+             (get-attr-type {:name :test :entity :other-ent}) => :record))
+
 (facts "about extract-attr simple"
        (let [example (h/html [:tr
-                               [:td.first "1-1"]
-                              [:td.second "1-2"]])
+                               [:td.first "11"]
+                              [:td.second "12"]])
              page1 (h/html [:tr
                             [:td.nombre "Boby"]
                             [:td.ape "Tables"]
@@ -21,17 +29,19 @@
                         :type :simple
                         :finder (enlive-selector [:tr :td.first :> e/text-node])}]
          (fact "with an item structure for entity returns structured items"
-               (extract-attr item-attr example "") => {:f "1-1"})
+               (extract-attr item-attr example "" ) => {:f "11"})
+         (fact "with an item structure formatted"
+               (extract-attr (assoc item-attr :formatter #(str % "-test")) example "" ) => {:f "11-test"})
          (fact "with nil finder returns sampled identity"
-               (extract-attr (assoc item-attr :finder nil) example "") => {:f (html-sampler
+               (extract-attr (assoc item-attr :finder nil) example "" ) => {:f (html-sampler
                                                                               (h/html [:tr
-                                                                                       [:td.first "1-1"]
-                                                                                       [:td.second "1-2"]]))})
+                                                                                       [:td.first "11"]
+                                                                                       [:td.second "12"]]))})
          (fact "with follow"
                (with-redefs [fetch-url fetch-url-mock]
                  (extract-attr (assoc item-attr :follow (fn [u,h]
                                                             (xpath-selector "/tr/td/a/@href") h))
-                               page1 ""))
+                               page1 "" ))
 
                =>
 
@@ -44,16 +54,20 @@
                             [:td [:a {:href "http://2"}]]])
              page2 (h/html [:tr
                             [:td.first "Other Content"]])
+             fetch-url-mock (fn [_] page2)
              item-det-struct [{:name :t
                                :type :simple
                                :finder (enlive-selector [:tr :td.first :> e/text-node])}]
              item-attr {:name :f
                         :type :record
                         :entity item-det-struct
-                        :follow (fn [u,h]
-                                  (xpath-selector "/tr/td/a/@href") h)}]
+                        :follow (fn [u h]
+                                  ((xpath-selector "/tr/td/a/@href") h))}]
          (fact "simple case"
-              (extract-attr item-attr page1 "") => {:f {:t "Other Content"}})))
+               (with-redefs [fetch-url fetch-url-mock]
+                 (extract-attr item-attr page1 "" )) => {:f {:t "Other Content"}})))
+
+
 
 (facts "about `extract-attr` collection"
        (let [page1 (h/html [:div [:table
@@ -81,7 +95,7 @@
                          :limit 10
                          :splitter (enlive-splitter [:div :table :tr])}]
          (fact "with nil entity returns colection with unstructured items"
-               (extract-attr col-attr page1 "") => {:all (list
+               (extract-attr col-attr page1 "" ) => {:all (list
                                                            (html-sampler (h/html [:tr [:td "row1"]]))
                                                            (html-sampler (h/html [:tr [:td "row2"]]))
                                                            (html-sampler (h/html [:tr [:td "row3"]])))})
@@ -89,7 +103,7 @@
 
          (fact "with paged collection"
                (with-redefs [fetch-url fetch-url-mock]
-                 (extract-attr paged-col-attr page1 "") => {:rows '({:i "row1"}
+                 (extract-attr paged-col-attr page1 "" ) => {:rows '({:i "row1"}
                                                                  {:i "row2"}
                                                                  {:i "row3"}
                                                                  {:i "row2-1"}
@@ -97,7 +111,7 @@
                                                                  {:i "row2-3"})}))
          (fact "with limited collection"
                (with-redefs [fetch-url fetch-url-mock]
-                 (extract-attr (assoc paged-col-attr :limit 4) page1 "") => {:rows
+                 (extract-attr (assoc paged-col-attr :limit 4) page1 "" ) => {:rows
                                                                           '({:i "row1"}
                                                                             {:i "row2"}
                                                                             {:i "row3"}
@@ -106,7 +120,7 @@
                (with-redefs [fetch-url fetch-url-mock]
                  (extract-attr (assoc paged-col-attr :next-page (fn [url html]
                                                                   ((xpath-selector "/wrong/a/@href") html)))
-                               page1 "")
+                               page1 "" )
 
                  =>
 

@@ -55,7 +55,7 @@
      (xp/node->xml
       (:node (first (xp/$x selector (sanitize-html html-str))))))))
 
-(def html-sampler-size 20)
+(def html-sampler-size 50)
 
 (defn html-sampler [html-str]
   (let [sample-end (min html-sampler-size (count html-str))]

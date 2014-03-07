@@ -3,6 +3,7 @@
             [clj-scraper.utils :refer :all]
             [net.cgrand.enlive-html :as e]
             [clj-rhino :as js])
+  (:use clojure.tools.trace)
   (:gen-class))
 
 
@@ -40,7 +41,9 @@
 
 
 (defn find-cuti-link [url ctx-h]
-  (str url ((xpath-selector "/tr/td[2]/a/@href") ctx-h)))
+  (let [u (str url ((xpath-selector "/tr/td[2]/a/@href") ctx-h))]
+    u))
+
 
 (defn find-email-from-js [js]
   (try
@@ -51,6 +54,22 @@
     (catch Exception e (.printStackTrace e))))
 
 (comment
+
+  (defentity cuti-contact-details
+    [email :finder (comp
+                    find-email-from-js
+                    (r )
+                    (x )
+                    (e )
+              (regexp-selector #"(?is).*(var add.*?)document.write.*" 1)
+              (enlive-selector [:table.contentpaneopen]))]
+    [dir :follow find-cuti-link :finder (comp
+              (regexp-selector #"(?is).*Direcci.n: (.+?)<.*" 1)
+              (enlive-selector [:table.contentpaneopen]))]
+    [tel :finder (comp
+              (regexp-selector #"(?is).*Tel.fono: (.+?)<.*" 1)
+              (enlive-selector [:table.contentpaneopen]))])
+
   (defentity cuti-contact
     [name :finder (comp
                    (cleaner \newline \tab)
@@ -59,29 +78,62 @@
      :finder (comp
               (regexp-selector #"(?is).*\"(http://.+?)\".*" 1)
               (enlive-selector [:table.contentpaneopen]))]
-    [email :follow find-cuti-link
-     :finder (comp
-              find-email-from-js
-              (regexp-selector #"(?is).*(var add.*?)document.write.*" 1)
-              (enlive-selector [:table.contentpaneopen]))]
-    [dir :follow find-cuti-link
-     :finder (comp
-              (regexp-selector #"(?is).*Direcci.n: (.+?)<.*" 1)
-              (enlive-selector [:table.contentpaneopen]))]
-    [tel :follow find-cuti-link
-     :finder (comp
-              (regexp-selector #"(?is).*Tel.fono: (.+?)<.*" 1)
-              (enlive-selector [:table.contentpaneopen]))])
+    [details :entity cuti-contact-details :follow find-cuti-link])
 
-  (defentity cuti-contacts
-    [contacts :splitter (fn [h]
-                          (concat ((enlive-splitter [:tr.sectiontableentry1]) h)
-                                  ((enlive-splitter [:tr.sectiontableentry2]) h)))
-     :limit 5
-     :entity cuti-contact])
+    (defentity cuti-contacts
+      [contacts :splitter (fn [h]
+                            (concat ((enlive-splitter [:tr.sectiontableentry1]) h)
+                                    ((enlive-splitter [:tr.sectiontableentry2]) h)))
+       :limit 5
+       :entity cuti-contact])
 
-  (def cuti-full-page (fetch-url "http://www.cuti.org.uy/socios.html?limit=0"))
-  (clojure.pprint/pprint (extract cuti-contacts cuti-full-page "http://www.cuti.org.uy/socios.html"))
+      (def cuti-full-page (fetch-url "http://www.cuti.org.uy/socios.html?limit=0"))
+  (clojure.pprint/pprint (extract cuti-contacts cuti-full-page "http://www.cuti.org.uy"))
+
+    ;;--------------------------------------------------------------------------------
+
+
+    (defentity cuti-contact
+      [name]
+      [web]
+      [mail])
+
+    (defentity cuti-contacts
+      [contacts
+       :splitter (enlive-splitter [[:tr (e/attr-starts "sectiontableentry")]])
+       :limit 5
+       :entity cuti-contact]
+      [title
+       :finder (comp
+                (cleaner \newline \tab)
+                (enlive-selector [:div.componentheading :> e/text-node]))])
+
+
+
+
+
+  ;; (defentity cuti-contact
+  ;;   [name :finder (comp
+  ;;                  (cleaner \newline \tab)
+  ;;                  (xpath-selector "/tr/td[2]/a/text()"))]
+  ;;   [web :follow find-cuti-link
+  ;;    :finder (comp
+  ;;             (regexp-selector #"(?is).*\"(http://.+?)\".*" 1)
+  ;;             (enlive-selector [:table.contentpaneopen]))]
+  ;;   [email :follow find-cuti-link
+  ;;    :finder (comp
+  ;;             find-email-from-js
+  ;;             (regexp-selector #"(?is).*(var add.*?)document.write.*" 1)
+  ;;             (enlive-selector [:table.contentpaneopen]))]
+  ;;   [dir :follow find-cuti-link
+  ;;    :finder (comp
+  ;;             (regexp-selector #"(?is).*Direcci.n: (.+?)<.*" 1)
+  ;;             (enlive-selector [:table.contentpaneopen]))]
+  ;;   [tel :follow find-cuti-link
+  ;;    :finder (comp
+  ;;             (regexp-selector #"(?is).*Tel.fono: (.+?)<.*" 1)
+  ;;             (enlive-selector [:table.contentpaneopen]))])
+
 
 )
 

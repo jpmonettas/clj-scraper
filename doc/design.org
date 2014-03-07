@@ -21,7 +21,8 @@
     {:name :attr-name
      :type :simple
      :finder a-finder-func
-     :follow a-link-finder-func}
+     :follow a-link-finder-func
+     :formatter a-formatter-func}
 
     If a simple attribute doesn't contains a finder we are using a sample of the entire context.
 
@@ -46,8 +47,19 @@
 
 *** :record
 
-    TBD
+    The record attribute MUST contain :
 
+    {:name :attr-name
+     :type :record
+     :entity another-struct
+     :follow a-link-finder-func}
+
+    The record attribute CAN contain :
+
+    {:name :attr-name
+     :type :record
+     :entity another-struct
+     :follow a-link-finder-func}
 
 * Returns (output)
 
@@ -59,6 +71,7 @@
 * Examples
 
 ** Basic 1
+
 
 [{:name :first-name
   :type :simple}
@@ -102,6 +115,4 @@ extracts =>
            {:age 32 :phone "232-23456432"}
            {:age 28 :phone "245-23456432"})}
 
-** Composed 2 (with follow)
-
-TBD
+** Composed 2 (with record)

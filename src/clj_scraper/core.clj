@@ -13,14 +13,22 @@
 (defmulti extract-attr (fn [structure html url] (:type structure)))
 
 (defmethod extract-attr :simple
-  [{name :name finder :finder follow :follow} html url]
+  [{name :name finder :finder follow :follow formatter :formatter} html url]
   (let [h (if follow
             (u/fetch-url (follow url html))
             html)
         effective-finder (or finder
-                             #(u/html-sampler %))]
-    {name (effective-finder h)}))
+                             #(u/html-sampler %))
+        effective-formatter (or formatter identity)]
+    {name (-> h
+              (effective-finder)
+              (effective-formatter))}))
 
+(defmethod extract-attr :record
+  [{name :name struct :entity follow :follow} html url]
+  (let [u (follow url html)
+        h (u/fetch-url u)]
+    {name (extract struct h u)}))
 
 (defn create-page-stream [url html next-page]
   (cons html (let [next-page-url (when next-page (next-page url html))
@@ -64,9 +72,9 @@ structure is a vector of attributes"
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn get-attr-type [attr]
-  (if (:splitter attr)
-    :collection
-    :simple))
+  (cond (:splitter attr) :collection
+        (:entity attr) :record
+        :else :simple))
 
 (defn process-attribute [attr]
   (let [[attr-name & attr-rest] attr
