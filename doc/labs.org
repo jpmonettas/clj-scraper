@@ -11,6 +11,7 @@
 * Goals of this project
 ** Implement a scraper with a DSL
 ** Try out a simple clojure project and assess strengths and weaknesses
+** Discover through experience best practises to maximize productivity and quality of the product
 
 * Design
 ** DSL is converted to intermediate representation
@@ -19,22 +20,51 @@
 ** DSL allows the user to construct the entities incrementally. User may write a minimal spec, test the results and then be more specific. (use some kind of screeencast for this?)
 
 * Implementation using clojure
-** Development cycle: immediate feedback to the developer. Speed of development (how do we express this?)
-** Expresiveness
-** Testing (functional)
+** DONE Development cycle: immediate feedback to the developer. Speed of development (how do we express this?)
+** DONE Expresiveness
+** TODO Testing (functional)
 **** Unit testing facilitated by absence of side effects and the ability of easily mocking
-** High order functions for selectors, splitters (functional)
+** TODO High order functions for selectors, splitters (functional)
 **** Easy to add new custom selectors
 
-** Use of macros for defining DSL
+** TODO Use of macros for defining DSL
 *** LISP is a natural choice for implementing DSLs
 
-** Use of multimethods to implement generalization of entity extraction (an alternative to class hierarchies).
+** TODO Use of multimethods to implement generalization of entity extraction (an alternative to class hierarchies).
 
 * Evaluation of development experience
-** Concise code
-** TDD
-** Value of unit testing
-** Error handling? Is it difficult to locate the source of errors?
+** DONE Concise code
+** DONE TDD
+** DONE Value of unit testing
+** TODO Error handling? Is it difficult to locate the source of errors?
 
 Use follow-ent for recusive(cascade) scrapping
+
+---------------------------------------------
+
+* Evaluation of development experience
+** Working with TDD
+
+Since one of the goals of this experiment was to "discover" some of the best practises for software development, we deliberately forced ourselves to follow Test Driven Development. This has several advantages we'll briefly cover next.
+
+*** Unit tests have your back
+The first and obvious advantage is that you have an automatic test for checking that a modification in code (either small or a big refactoring) doesn't cause unexpected behavior in the system. Most unit testing tools enable the developer to test the whole project or groups of functions. Also, the tool we used (Midje) can automatically run the tests as the changes are saved, which provides immediate feedback to the developer.
+
+*** It's the natural way
+By implementing tests first, we not only have a way of verifying that the new functionality is working but also some sort of documentation on how it should work. For instance, most articles on writing macros advise to first write down an example of the use and then the result of expanding that macro. This is no different from a unit test of the macro expansion as shown below.
+
+*INSERT MACRO TEST*
+
+Most times, the developer thinks of edge cases while implementing a function. Since you already thought of them, why not putting them on paper (unit test) first? You'll likely forget about this edge case and/or unvoluntary remove the code that controls it.
+
+*** The most effective way of documenting behavior
+It's not likely that documents will contain every single aspect of the behavior of a function and devs are not fond of writing large pieces of comments in code. Unit tests provide an effective way of communicating what is expected of a function and what edge cases it's ready to handle.
+
+** Working with Clojure
+As with other flavors of LISP, the use of the REPL makes the development cycle much faster by providing the developer with a stateful environment in which you can run small units of code and verify the results. In other words, you can modify a function and check if the new behavior is the desired one without having to manually compile and restart the whole system.
+*ADD SMALL SCREENCAST HERE?*
+
+We believe to have concise and expressive code. You will notice that we used 20 lines to define the DSL translation to the intermediate representation and 60 lines to implement the extraction. It could have been shorter, since there let bindings and named functions which have the only purpose of making the code more readable.
+*SMALL IMAGE WITH CODE SNAPSHOT SHOWING THE PARTS*
+
+Finally, the fact that clojure leads (FOOTNOTE: actually you can have side effects) the developer to implement functions without side-effects results in code that is easier to test. There's no need to set up an special context for running the test, since all the functions require to produce the output are the parameters passed.

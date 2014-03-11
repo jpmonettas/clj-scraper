@@ -1,4 +1,4 @@
-* TODO DSL improvements
+* DONE DSL improvements
 - Refactor entity -> struct
 
 * DONE Refactor fetch-col-items
