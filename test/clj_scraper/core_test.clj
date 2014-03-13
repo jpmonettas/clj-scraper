@@ -13,7 +13,7 @@
        (fact "simple"
              (get-attr-type {:name :test}) => :simple)
        (fact "record"
-             (get-attr-type {:name :test :entity :other-ent}) => :record))
+             (get-attr-type {:name :test :struct :other-ent}) => :record))
 
 (facts "about extract-attr simple"
        (let [example (h/html [:tr
@@ -58,7 +58,7 @@
                                :finder (enlive-selector [:tr :td.first :> e/text-node])}]
              item-attr {:name :f
                         :type :record
-                        :entity item-det-struct
+                        :struct item-det-struct
                         :follow (fn [u h]
                                   ((xpath-selector "/tr/td/a/@href") h))}]
          (fact "simple case"
@@ -82,13 +82,13 @@
                               :finder (xpath-selector "/tr/td/text()")}]
              paged-col-attr {:name :rows
                              :type :collection
-                             :entity paged-col-item
+                             :struct paged-col-item
                              :splitter (xpath-splitter "/div/table/tr")
                              :next-page (fn [url html]
                                           ((xpath-selector "/div/a/@href") html))}
              col-attr {:name :all
                          :type :collection
-                         :entity nil
+                         :struct nil
                          :limit 10
                          :splitter (enlive-splitter [:div :table :tr])}]
          (fact "with nil entity returns colection with unstructured items"
@@ -145,7 +145,7 @@
                            :finder (enlive-selector [:tr :td.second  :> e/text-node])}]
              col-struct [{:name :all
                           :type :collection
-                          :entity item-struct
+                          :struct item-struct
                           :limit 10
                           :splitter (enlive-splitter [:table :tr])}]]
          (fact "with composed structure"
@@ -162,6 +162,7 @@
         (defentity person
           [first-name :finder "/div[@class='name']/text()"]
           [age :finder "/div[@class='age']/text()"]
+          [details :entity person-details :follow follow-func]
           [friends :splitter spl-func :limit 5])
 
         =expands-to=>
@@ -172,6 +173,10 @@
                      {:name :age
                       :finder "/div[@class='age']/text()"
                       :type :simple}
+                     {:name :details
+                      :type :record
+                      :struct person-details
+                      :follow follow-func}
                      {:name :friends
                       :type :collection
                       :limit 5 :splitter spl-func}])))

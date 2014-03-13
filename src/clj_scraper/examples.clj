@@ -58,12 +58,9 @@
   (defentity cuti-contact-details
     [email :finder (comp
                     find-email-from-js
-                    (r )
-                    (x )
-                    (e )
               (regexp-selector #"(?is).*(var add.*?)document.write.*" 1)
               (enlive-selector [:table.contentpaneopen]))]
-    [dir :follow find-cuti-link :finder (comp
+    [dir :finder (comp
               (regexp-selector #"(?is).*Direcci.n: (.+?)<.*" 1)
               (enlive-selector [:table.contentpaneopen]))]
     [tel :finder (comp

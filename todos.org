@@ -1,4 +1,4 @@
-* TODO DSL improvements
+* DONE DSL improvements
 - Refactor entity -> struct
 * TODO Refactor splitter to exploder???
 * TODO Error Handling

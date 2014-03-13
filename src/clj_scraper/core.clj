@@ -3,6 +3,7 @@
             [clj-xpath.core :as xp]
             [hiccup.util :as hutil]
             [clojure.xml :as xml]
+            [clojure.set :as set]
             [clj-scraper.utils :as u])
   (:use clojure.tools.trace)
   (:gen-class))
@@ -25,7 +26,7 @@
               (effective-formatter))}))
 
 (defmethod extract-attr :record
-  [{name :name struct :entity follow :follow} html url]
+  [{name :name struct :struct follow :follow} html url]
   (let [u (follow url html)
         h (u/fetch-url u)]
     {name (extract struct h u)}))
@@ -48,7 +49,7 @@
 
 
 (defmethod extract-attr :collection
-  [{name :name item-structure :entity limit :limit splitter :splitter next-page :next-page} html url]
+  [{name :name item-structure :struct limit :limit splitter :splitter next-page :next-page} html url]
   (let [splitted-col (->>
                       (fetch-col-items splitter limit next-page html url)
                       (map #(extract item-structure % url)))]
@@ -73,14 +74,16 @@ structure is a vector of attributes"
 
 (defn get-attr-type [attr]
   (cond (:splitter attr) :collection
-        (:entity attr) :record
+        (:struct attr) :record
         :else :simple))
 
 (defn process-attribute [attr]
   (let [[attr-name & attr-rest] attr
-        attribute (merge {:name (keyword attr-name)}
-                         (apply hash-map attr-rest))]
-    (assoc attribute :type (get-attr-type attribute))))
+        attribute (-> (apply hash-map attr-rest)
+                      (set/rename-keys {:entity :struct}))]
+    (-> attribute
+        (merge {:name (keyword attr-name)
+                :type (get-attr-type attribute)}))))
 
 (defn entity-attribute [attributes]
   (->> attributes
