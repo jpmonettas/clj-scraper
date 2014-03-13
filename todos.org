@@ -1,10 +1,9 @@
 * TODO DSL improvements
 - Refactor entity -> struct
-
-* DONE Refactor fetch-col-items
 * TODO Refactor splitter to exploder???
 * TODO Error Handling
 * TODO Documentation
+* DONE Refactor fetch-col-items
 * DONE Output formatting
 * TODO Eval other xpath libs
 * TODO Add CSS selectors libs

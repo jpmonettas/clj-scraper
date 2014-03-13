@@ -24,7 +24,6 @@
                             [:td.ape "Tables"]
                             [:td [:a {:href "http://2"}]]])
              page2 (h/html [:tr [:td.first "Other Content"]])
-             fetch-url-mock (fn [_] page2)
              item-attr {:name :f
                         :type :simple
                         :finder (enlive-selector [:tr :td.first :> e/text-node])}]
@@ -38,14 +37,14 @@
                                                                                        [:td.first "11"]
                                                                                        [:td.second "12"]]))})
          (fact "with follow"
-               (with-redefs [fetch-url fetch-url-mock]
-                 (extract-attr (assoc item-attr :follow (fn [u,h]
-                                                            (xpath-selector "/tr/td/a/@href") h))
-                               page1 "" ))
+               (extract-attr (assoc item-attr :follow (fn [u,h]
+                                                        (xpath-selector "/tr/td/a/@href") h))
+                             page1 "" )
 
                =>
 
-               {:f "Other Content"})))
+               {:f "Other Content"}
+               (provided (fetch-url anything) => page2))))
 
 (facts "about extract-attr record"
        (let [page1 (h/html [:tr
@@ -54,7 +53,6 @@
                             [:td [:a {:href "http://2"}]]])
              page2 (h/html [:tr
                             [:td.first "Other Content"]])
-             fetch-url-mock (fn [_] page2)
              item-det-struct [{:name :t
                                :type :simple
                                :finder (enlive-selector [:tr :td.first :> e/text-node])}]
@@ -64,8 +62,8 @@
                         :follow (fn [u h]
                                   ((xpath-selector "/tr/td/a/@href") h))}]
          (fact "simple case"
-               (with-redefs [fetch-url fetch-url-mock]
-                 (extract-attr item-attr page1 "" )) => {:f {:t "Other Content"}})))
+               (extract-attr item-attr page1 "" )  => {:f {:t "Other Content"}}
+                 (provided (fetch-url anything) => page2))))
 
 
 
@@ -88,7 +86,6 @@
                              :splitter (xpath-splitter "/div/table/tr")
                              :next-page (fn [url html]
                                           ((xpath-selector "/div/a/@href") html))}
-             fetch-url-mock (fn [_] page2)
              col-attr {:name :all
                          :type :collection
                          :entity nil
@@ -102,32 +99,32 @@
 
 
          (fact "with paged collection"
-               (with-redefs [fetch-url fetch-url-mock]
-                 (extract-attr paged-col-attr page1 "" ) => {:rows '({:i "row1"}
-                                                                 {:i "row2"}
-                                                                 {:i "row3"}
-                                                                 {:i "row2-1"}
-                                                                 {:i "row2-2"}
-                                                                 {:i "row2-3"})}))
+               (extract-attr paged-col-attr page1 "" ) => {:rows '({:i "row1"}
+                                                                   {:i "row2"}
+                                                                   {:i "row3"}
+                                                                   {:i "row2-1"}
+                                                                   {:i "row2-2"}
+                                                                   {:i "row2-3"})}
+               (provided (fetch-url anything) => page2))
+
          (fact "with limited collection"
-               (with-redefs [fetch-url fetch-url-mock]
-                 (extract-attr (assoc paged-col-attr :limit 4) page1 "" ) => {:rows
-                                                                          '({:i "row1"}
-                                                                            {:i "row2"}
-                                                                            {:i "row3"}
-                                                                            {:i "row2-1"})}))
+               (extract-attr (assoc paged-col-attr :limit 4) page1 "" ) => {:rows
+                                                                            '({:i "row1"}
+                                                                              {:i "row2"}
+                                                                              {:i "row3"}
+                                                                              {:i "row2-1"})}
+               (provided (fetch-url anything) => page2))
          (fact "with next button not found"
-               (with-redefs [fetch-url fetch-url-mock]
-                 (extract-attr (assoc paged-col-attr :next-page (fn [url html]
-                                                                  ((xpath-selector "/wrong/a/@href") html)))
-                               page1 "" )
+               (extract-attr (assoc paged-col-attr :next-page (fn [url html]
+                                                                ((xpath-selector "/wrong/a/@href") html)))
+                             page1 "" )
 
-                 =>
+               =>
 
-                 {:rows
-                  '({:i "row1"}
-                    {:i "row2"}
-                    {:i "row3"})}))))
+               {:rows
+                '({:i "row1"}
+                  {:i "row2"}
+                  {:i "row3"})})))
 
 (facts "about `extract`"
        (let [example (h/html [:table
