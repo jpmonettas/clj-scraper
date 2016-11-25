@@ -152,3 +152,36 @@
 
 
   )
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; http://www.blacklionmusic.com/lista-de-salsa/ ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(comment
+  
+(defentity album
+  [album-name :finder (xpath-selector "/a/text()")])
+
+(defentity albums
+  [all-albums :splitter (enlive-splitter [:div.td-post-content :> :p :> :strong :> :a])
+   ;; :limit 5
+   :entity album])
+
+(defentity artist
+  [artist-name :finder (comp 
+                        (regexp-selector #"(.+?) \[Discografia\].*" 1)
+                        (xpath-selector "/a/text()"))]
+  [artist-albums :follow (fn [_ h] ((xpath-selector "/a/@href") h)) :entity albums] )
+
+(defentity artists
+  [artists :splitter (enlive-splitter [:div.td-page-content :a])
+   ;; :limit 10
+   :entity artist])
+
+
+(spit "/home/jmonetta/mambolist.clj"
+      (with-out-str
+        (clojure.pprint/pprint
+         (extract-url artists "http://www.blacklionmusic.com/lista-de-salsa/"))))
+
+
+)

@@ -6,7 +6,11 @@
   (:use clojure.tools.trace)
   (:gen-class))
 
-(def fetch-url (memoize slurp))
+(def fetch-url (memoize (fn [url]
+                          (try
+                            (slurp url)
+                            (catch Exception e
+                              (println url "does not exist"))))))
 
 (defn cleaner [& chars]
   (fn [html-str]
